@@ -1,30 +1,8 @@
-import pg from 'pg';
-import dotenv from 'dotenv';
+import mongoose from "mongoose";
 
-dotenv.config();
-
-const pool = new pg.Pool({
-  connectionString: process.env.DATABASE_URL,
-});
-
-pool.on('error', (err, client) => {
-  console.error('Unexpected error on idle client', err);
-  process.exit(-1);
-});
-
-export const query = async (text, params) => {
-  const start = Date.now();
-  const res = await pool.query(text, params);
-  const duration = Date.now() - start;
-  // console.log('executed query', { text, duration, rows: res.rowCount });
-  return res;
+const connectDB = async () => {
+    await mongoose.connect(process.env.MONGO_URI);
+    console.log('MongoDB Connected');
 };
 
-export const getClient = () => {
-    return pool.connect();
-};
-
-export default {
-  query,
-  getClient
-};
+export default connectDB;

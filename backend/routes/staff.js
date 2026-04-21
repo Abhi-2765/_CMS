@@ -1,16 +1,13 @@
-import { Router } from 'express';
-import * as staffController from '../controllers/staff.js';
-import { validate } from '../middleware/validate.js';
-import { updateComplaintStatusSchema, addNoteSchema } from '../validators/complaintValidator.js';
-import { authenticate } from '../middleware/auth.js';
-import { authorize } from '../middleware/authorize.js';
+import { Router } from "express";
+import { viewAssignedTasks, updateProgress, updateStatus, markAsResolved } from "../controllers/staff.js";
+import authenticateUser from "../middleware/authenticationMiddleware.js"
+import allowRoles from "../middleware/roleMiddleware.js"
 
 const router = Router();
 
-router.use(authenticate, authorize('STAFF'));
-
-router.get('/complaints', staffController.getAssignedComplaints);
-router.patch('/complaints/:id/status', validate(updateComplaintStatusSchema), staffController.updateStatus);
-router.post('/complaints/:id/notes', validate(addNoteSchema), staffController.addNote);
+router.get("/view-assigned-tasks", authenticateUser, allowRoles("STAFF"), viewAssignedTasks);
+router.post("/update-progress/:complaintId", authenticateUser, allowRoles("STAFF"), updateProgress);
+router.patch("/complaints/:complaintId/status", authenticateUser, allowRoles("STAFF"), updateStatus);
+router.post("/mark-resolved/:complaintId", authenticateUser, allowRoles("STAFF"), markAsResolved);
 
 export default router;

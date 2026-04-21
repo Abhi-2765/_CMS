@@ -1,21 +1,15 @@
-import { Router } from 'express';
-import * as userController from '../controllers/user.js';
-import { validate } from '../middleware/validate.js';
-import { createComplaintSchema } from '../validators/complaintValidator.js';
-import { authenticate } from '../middleware/auth.js';
-import { authorize } from '../middleware/authorize.js';
-import { upload } from '../middleware/upload.js';
+import { Router } from "express"
+import { viewComplaint, createComplaint, getMyComplaints, deleteComplaint, getNotifications, markRead } from "../controllers/user.js";
+import authenticateUser from "../middleware/authenticationMiddleware.js";
+import upload from "../middleware/upload.js";
 
 const router = Router();
 
-// Endpoints for Users
-router.use(authenticate);
-
-// We need authorize('USER') to block STAFF/ADMIN from submitting complaints for themselves?
-// Or maybe any role can submit a complaint. Let's allow ANY role to get their own complaints.
-
-router.post('/', upload.single('image'), validate(createComplaintSchema), userController.createComplaint);
-router.get('/', userController.getMyComplaints);
-router.get('/:id', userController.getComplaint);
+router.post("/create-complaint", authenticateUser, upload.array("images", 5), createComplaint);
+router.get("/my-complaints", authenticateUser, getMyComplaints);
+router.get("/view-complaint/:complaintId", authenticateUser, viewComplaint)
+router.delete("/complaint/:complaintId", authenticateUser, deleteComplaint);
+router.get("/notifications", authenticateUser, getNotifications);
+router.post("/mark-read/:notificationId", authenticateUser, markRead);
 
 export default router;

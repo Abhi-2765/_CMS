@@ -1,61 +1,45 @@
+import dotenv from 'dotenv';
+dotenv.config();
+
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
-import helmet from 'helmet';
-import rateLimit from 'express-rate-limit';
-import morgan from 'morgan';
-import dotenv from 'dotenv';
-import authRoutes from './routes/auth.js';
-import adminRoutes from './routes/admin.js';
-import userRoutes from './routes/user.js';
-import staffRoutes from './routes/staff.js';
-import metricsRoutes from './routes/metrics.js';
-import { errorHandler } from './middleware/errorHandler.js';
-import { metricsMiddleware } from './middleware/metrics.js';
 
-dotenv.config();
+import connectDB from './config/db.js';
+import adminRoutes from './routes/admin.js';
+import authRoutes from './routes/auth.js'
+import staffRoutes from './routes/staff.js';
+import userRoutes from './routes/user.js';
+import { getMetricsSummary } from './controllers/admin.js';
+
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Security Middleware
-app.use(helmet());
-app.use(cors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
-    credentials: true,
-}));
+app.use(
+    cors({
+        origin: ["https://xpensetrack.onrender.com", "http://localhost:5173", "http://localhost:5174"],
+        methods: ["GET", "POST", "PUT", "DELETE"],
+        credentials: true,
+        allowedHeaders: ["Content-Type", "Authorization", "userid"],
+    })
+);
 
-// Rate limiting (max 100 requests per 15 minutes per IP)
-const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000,
-    max: 100,
-    message: 'Too many requests from this IP, please try again later.'
-});
-app.use('/api/', limiter);
-
-// Parses JSON, URL-encoded data, and cookies
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+app.use(express.json());
+app.set("trust proxy", true);
 
-// Request logging (console)
-app.use(morgan('combined'));
+app.use("/api/admin", adminRoutes);
+app.use("/api/auth", authRoutes);
+app.use("/api/staff", staffRoutes);
+app.use("/api/user", userRoutes);
+app.get("/api/metrics/summary", getMetricsSummary);
 
-// Database metrics pipeline (times requests and logs to pg)
-app.use(metricsMiddleware);
-
-// Routes
-app.get('/api/health', (req, res) => res.json({ status: 'ok', timestamp: new Date() }));
-
-app.use('/api/auth', authRoutes);
-app.use('/api/admin', adminRoutes);
-app.use('/api/users', userRoutes);
-app.use('/api/staff', staffRoutes);
-app.use('/api/metrics', metricsRoutes);
-
-// Global Error Handler
-app.use(errorHandler);
+app.use((req, res) => {
+    res.status(404).send('404 Not Found');
+});
 
 app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+    connectDB();
+    console.log(`Server running on http://localhost:${PORT}`);
 });

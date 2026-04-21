@@ -1,19 +1,15 @@
-import { Router } from 'express';
-import * as adminController from '../controllers/admin.js';
-import { validate } from '../middleware/validate.js';
-import { createStaffSchema, assignComplaintSchema } from '../validators/adminValidator.js';
-import { authenticate } from '../middleware/auth.js';
-import { authorize } from '../middleware/authorize.js';
+import { Router } from "express";
+import { createStaff, assignTask, getUnassignedTasks, getCategoryMonthlyAnalytics, getDashboardAnalytics, getAllStaff } from "../controllers/admin.js";
+import authenticateUser from "../middleware/authenticationMiddleware.js"
+import allowRoles from "../middleware/roleMiddleware.js"
 
-const router = Router();
+const router = Router()
 
-router.use(authenticate, authorize('ADMIN'));
-
-router.post('/create-staff', validate(createStaffSchema), adminController.createStaff);
-router.patch('/assign', validate(assignComplaintSchema), adminController.assignComplaint);
-router.get('/analytics', adminController.getAnalytics);
-router.get('/complaints', adminController.getAllComplaints);
-router.get('/users', adminController.getAllUsers);
-router.get('/logs', adminController.fetchLogs);
+router.post("/create-staff", authenticateUser, allowRoles("ADMIN"), createStaff);
+router.post("/assign-task", authenticateUser, allowRoles("ADMIN"), assignTask);
+router.get("/unassigned-tasks", authenticateUser, allowRoles("ADMIN"), getUnassignedTasks);
+router.get("/staff", authenticateUser, allowRoles("ADMIN"), getAllStaff);
+router.get("/category-monthly-analytics", authenticateUser, allowRoles("ADMIN"), getCategoryMonthlyAnalytics);
+router.get("/analytics", authenticateUser, allowRoles("ADMIN"), getDashboardAnalytics);
 
 export default router;

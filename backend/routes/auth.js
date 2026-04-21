@@ -1,15 +1,26 @@
-import { Router } from 'express';
-import * as authController from '../controllers/auth.js';
-import { validate } from '../middleware/validate.js';
-import { registerSchema, loginSchema, changePasswordSchema } from '../validators/authValidator.js';
-import { authenticate } from '../middleware/auth.js';
+import express from 'express';
+import { 
+    login, 
+    logout, 
+    register, 
+    checkAuth, 
+    forgotPassword, 
+    resetPassword, 
+    updatePassword 
+} from '../controllers/auth.js';
+import authenticateUser from '../middleware/authenticationMiddleware.js';
 
-const router = Router();
+const router = express.Router();
 
-router.post('/register', validate(registerSchema), authController.register);
-router.post('/login', validate(loginSchema), authController.login);
-router.post('/logout', authenticate, authController.logout);
-router.post('/change-password', authenticate, validate(changePasswordSchema), authController.changePassword);
-router.get('/me', authenticate, authController.getMe);
+router.post('/login', login);
+router.post('/register', register);
+router.post('/logout', logout);
+
+// Password Management
+router.post('/forgot-password', forgotPassword);
+router.post('/reset-password', resetPassword);
+router.post('/update-password', authenticateUser, updatePassword);
+
+router.get('/check-auth', authenticateUser, checkAuth);
 
 export default router;
