@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import toast from 'react-hot-toast';
-import { LogIn } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -18,8 +18,7 @@ export default function Login() {
     setIsLoading(true);
     try {
       const user = await login(email, password);
-      toast.success('Welcome back!');
-      
+      toast.success('Welcome back');
       if (user.role === 'ADMIN') navigate('/admin');
       else if (user.role === 'STAFF') navigate('/staff');
       else navigate('/dashboard');
@@ -31,26 +30,28 @@ export default function Login() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4 py-12 dark:bg-slate-900 sm:px-6 lg:px-8">
-      <div className="glass-panel w-full max-w-md space-y-8 rounded-2xl p-8">
-        <div>
-          <h2 className="mt-2 text-center text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
-            Sign in to your account
-          </h2>
-          <p className="mt-2 text-center text-sm text-slate-600 dark:text-slate-400">
-            Campus CMS Portal
+    <div className="flex min-h-screen items-center justify-center px-4" style={{ background: 'var(--bg)' }}>
+      <div className="w-full max-w-sm page-enter">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-xl font-bold tracking-tight" style={{ color: 'var(--text)' }}>
+            Sign in
+          </h1>
+          <p className="mt-1 text-[13px]" style={{ color: 'var(--text-muted)' }}>
+            Campus Complaint Management System
           </p>
         </div>
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div className="space-y-4 rounded-md shadow-sm">
-            <Input
-              label="Email address"
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@campus.edu"
-            />
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <Input
+            label="Email"
+            type="email"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="you@campus.edu"
+          />
+          <div>
             <Input
               label="Password"
               type="password"
@@ -59,20 +60,35 @@ export default function Login() {
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
             />
+            <div className="mt-1.5 flex justify-end">
+              <Link
+                to="/forgot-password"
+                className="text-xs font-medium transition-colors"
+                style={{ color: 'var(--text-muted)' }}
+              >
+                Forgot password?
+              </Link>
+            </div>
           </div>
 
-          <Button type="submit" className="w-full" isLoading={isLoading}>
-            <LogIn className="mr-2 h-4 w-4" />
-            Sign in
+          <Button type="submit" className="w-full" isLoading={isLoading} size="lg">
+            Continue
+            <ArrowRight size={14} />
           </Button>
-
-          <p className="text-center text-sm text-slate-600 dark:text-slate-400">
-            Don't have an account?{' '}
-            <Link to="/register" className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400">
-              Register here
-            </Link>
-          </p>
         </form>
+
+        <p className="mt-6 text-center text-[13px]" style={{ color: 'var(--text-muted)' }}>
+          Don't have an account?{' '}
+          <Link to="/register" className="font-medium underline" style={{ color: 'var(--text)' }}>
+            Sign up
+          </Link>
+        </p>
+
+        <div className="mt-8 pt-6 text-center" style={{ borderTop: '1px solid var(--border)' }}>
+          <p className="text-[11px]" style={{ color: 'var(--text-muted)' }}>
+            Secure login · Campus CMS
+          </p>
+        </div>
       </div>
     </div>
   );

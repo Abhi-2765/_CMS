@@ -4,16 +4,22 @@ import apiClient from '../api/client';
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-    const [user, setUser] = useState(null);
-    const [loading, setLoading] = useState(true);
+    const [user, setUser] = useState(
+        import.meta.env.VITE_DEV_BYPASS_AUTH === 'true'
+            ? { id: 'dev-user', name: 'Dev User', email: 'dev@example.com', role: import.meta.env.VITE_DEV_ROLE || 'ADMIN' }
+            : null
+    );
+    const [loading, setLoading] = useState(import.meta.env.VITE_DEV_BYPASS_AUTH !== 'true');
 
     useEffect(() => {
-        checkAuth();
+        if (import.meta.env.VITE_DEV_BYPASS_AUTH !== 'true') {
+            checkAuth();
+        }
     }, []);
 
     const checkAuth = async () => {
         try {
-            const data = await apiClient.get('/api/auth/me');
+            const data = await apiClient.get('/api/auth/check-auth');
             setUser(data.user);
         } catch (error) {
             setUser(null);
@@ -29,7 +35,8 @@ export const AuthProvider = ({ children }) => {
     };
 
     const register = async (name, email, password) => {
-        await apiClient.post('/api/auth/register', { name, email, password });
+        const data = await apiClient.post('/api/auth/register', { name, email, password, role: 'USER' });
+        // After successful registration, login is called which sets the user
         return await login(email, password);
     };
 

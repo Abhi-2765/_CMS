@@ -7,7 +7,6 @@ export const viewAssignedTasks = async (req, res) => {
     try {
         const staffId = req.user._id;
 
-        // Find all assignments for this staff
         const assignments = await Assignment.find({ staff: staffId })
             .populate({
                 path: "complaint",

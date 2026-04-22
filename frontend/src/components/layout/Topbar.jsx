@@ -1,36 +1,51 @@
-import { Menu, User, Bell } from 'lucide-react';
+import { Menu, Bell, Sun, Moon } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
+import { Link } from 'react-router-dom';
 
 export default function Topbar({ onMenuClick }) {
   const { user } = useAuth();
+  const { theme, toggleTheme } = useTheme();
 
   return (
-    <header className="flex h-16 shrink-0 items-center justify-between border-b border-slate-200 bg-white/70 px-4 backdrop-blur-md dark:border-slate-800 dark:bg-slate-900/70 md:px-6">
-      <div className="flex items-center gap-4">
-        <button 
+    <header className="topbar flex h-14 shrink-0 items-center justify-between px-4 md:px-6">
+      <div className="flex items-center gap-3">
+        <button
           onClick={onMenuClick}
-          className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 lg:hidden dark:text-slate-400 dark:hover:bg-slate-800"
+          className="rounded-md p-1.5 lg:hidden transition-colors"
+          style={{ color: 'var(--text-muted)' }}
         >
-          <Menu size={20} />
+          <Menu size={18} />
         </button>
-        <div className="hidden lg:block text-sm font-medium text-slate-500 dark:text-slate-400">
-          Welcome back, <span className="text-slate-900 dark:text-slate-100">{user?.name}</span>
-        </div>
+        <span className="hidden sm:block text-[13px]" style={{ color: 'var(--text-muted)' }}>
+          Welcome, <span style={{ color: 'var(--text)', fontWeight: 600 }}>{user?.name}</span>
+        </span>
       </div>
 
-      <div className="flex items-center gap-4">
-        <button className="relative rounded-lg p-2 text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800">
-          <Bell size={20} />
-          <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-red-500"></span>
+      <div className="flex items-center gap-1">
+        {/* Theme toggle */}
+        <button
+          onClick={toggleTheme}
+          className="rounded-md p-2 transition-colors"
+          style={{ color: 'var(--text-muted)' }}
+          title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+        >
+          {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
         </button>
-        
-        <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-400">
-            <User size={18} />
+
+        {/* Separator */}
+        <div className="mx-1.5 h-5 w-px" style={{ background: 'var(--border)' }} />
+
+        {/* User */}
+        <div className="flex items-center gap-2 rounded-md px-2 py-1.5">
+          <div
+            className="flex h-6 w-6 items-center justify-center rounded-md text-[10px] font-bold"
+            style={{ background: 'var(--accent)', color: 'var(--bg)' }}
+          >
+            {user?.name?.[0]?.toUpperCase() ?? 'U'}
           </div>
-          <div className="hidden flex-col md:flex">
-            <span className="text-sm font-medium text-slate-900 dark:text-slate-100">{user?.name}</span>
-            <span className="text-xs text-slate-500 dark:text-slate-400">{user?.role}</span>
+          <div className="hidden md:block">
+            <p className="text-[13px] font-medium leading-none" style={{ color: 'var(--text)' }}>{user?.name}</p>
           </div>
         </div>
       </div>

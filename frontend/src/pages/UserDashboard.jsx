@@ -1,133 +1,123 @@
 import { useState, useEffect } from 'react';
-import { useAuth } from '../context/AuthContext';
 import apiClient from '../api/client';
-import { Card, CardHeader, CardContent } from '../components/ui/Card';
-import { Badge } from '../components/ui/Badge';
-import { format } from 'date-fns';
-import { Clock, CheckCircle, PlusCircle } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Card, CardContent } from '../components/ui/Card';
+import { StatusBadge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
+import { ClipboardList, PlusCircle, CheckCircle2, Clock, ArrowRight } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { Link } from 'react-router-dom';
+import { format } from 'date-fns';
 
 export default function UserDashboard() {
-  const { user } = useAuth();
   const [complaints, setComplaints] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchComplaints();
-  }, []);
+  useEffect(() => { fetchComplaints(); }, []);
 
   const fetchComplaints = async () => {
     try {
-      const data = await apiClient.get('/api/users');
-      setComplaints(data);
-    } catch (err) {
+      const data = await apiClient.get('/api/user/my-complaints');
+      setComplaints(data.complaints || []);
+    } catch {
       toast.error('Failed to load complaints');
     } finally {
       setLoading(false);
     }
   };
 
-  const pending = complaints.filter(c => c.status === 'PENDING').length;
-  const resolved = complaints.filter(c => c.status === 'RESOLVED').length;
+  const counts = {
+    total:    complaints.length,
+    pending:  complaints.filter(c => c.status === 'PENDING').length,
+    active:   complaints.filter(c => c.status === 'IN_PROGRESS' || c.status === 'ASSIGNED').length,
+    resolved: complaints.filter(c => c.status === 'RESOLVED').length,
+  };
+
+  const stats = [
+    { label: 'Total',    value: counts.total,    icon: ClipboardList },
+    { label: 'Pending',  value: counts.pending,  icon: Clock         },
+    { label: 'Active',   value: counts.active,   icon: ArrowRight    },
+    { label: 'Resolved', value: counts.resolved, icon: CheckCircle2  },
+  ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 page-enter">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
-            My Complaints
-          </h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400">
-            Track and manage your maintenance requests.
-          </p>
+          <h1 className="text-lg font-bold" style={{ color: 'var(--text)' }}>My Complaints</h1>
+          <p className="text-[13px]" style={{ color: 'var(--text-muted)' }}>Track your submitted requests</p>
         </div>
         <Link to="/complaints/new">
-          <Button>
-            <PlusCircle className="mr-2 h-4 w-4" />
-            New Request
+          <Button size="sm">
+            <PlusCircle size={14} /> New Complaint
           </Button>
         </Link>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card>
-          <CardContent className="flex items-center justify-between p-6">
-            <div>
-              <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Total Requests</p>
-              <h3 className="text-2xl font-bold text-slate-900 dark:text-white">{complaints.length}</h3>
-            </div>
-            <div className="rounded-full bg-blue-100 p-3 text-blue-600 dark:bg-blue-900/50 dark:text-blue-400">
-              <Clock className="h-5 w-5" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="flex items-center justify-between p-6">
-            <div>
-              <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Pending</p>
-              <h3 className="text-2xl font-bold text-slate-900 dark:text-white">{pending}</h3>
-            </div>
-            <div className="rounded-full bg-yellow-100 p-3 text-yellow-600 dark:bg-yellow-900/50 dark:text-yellow-400">
-              <Clock className="h-5 w-5" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="flex items-center justify-between p-6">
-            <div>
-              <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Resolved</p>
-              <h3 className="text-2xl font-bold text-slate-900 dark:text-white">{resolved}</h3>
-            </div>
-            <div className="rounded-full bg-green-100 p-3 text-green-600 dark:bg-green-900/50 dark:text-green-400">
-              <CheckCircle className="h-5 w-5" />
-            </div>
-          </CardContent>
-        </Card>
+      {/* Stats */}
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        {stats.map(({ label, value, icon: Icon }) => (
+          <Card key={label}>
+            <CardContent className="flex items-center justify-between !p-4">
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>{label}</p>
+                <p className="mt-1 text-2xl font-bold" style={{ color: 'var(--text)' }}>{value}</p>
+              </div>
+              <div className="rounded-md p-2" style={{ background: 'var(--bg-muted)' }}>
+                <Icon size={18} style={{ color: 'var(--text-muted)' }} />
+              </div>
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
+      {/* Table */}
       <Card>
-        <CardHeader>
-          <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Recent Complaints</h2>
-        </CardHeader>
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm text-slate-600 dark:text-slate-300">
-            <thead className="bg-slate-50 text-xs font-medium uppercase text-slate-500 dark:bg-slate-800/50 dark:text-slate-400 border-y border-slate-200 dark:border-slate-700/50">
-              <tr>
-                <th className="px-6 py-3">Title</th>
-                <th className="px-6 py-3">Category</th>
-                <th className="px-6 py-3">Status</th>
-                <th className="px-6 py-3">Date</th>
-                <th className="px-6 py-3">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-200 dark:divide-slate-700/50 bg-white dark:bg-transparent">
-              {loading ? (
+          {loading ? (
+            <div className="p-6 space-y-3">
+              {[...Array(3)].map((_, i) => <div key={i} className="h-10 skeleton" />)}
+            </div>
+          ) : complaints.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16 text-center">
+              <ClipboardList size={28} style={{ color: 'var(--text-muted)' }} />
+              <p className="mt-3 text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>No complaints yet</p>
+              <p className="mt-1 text-[12px]" style={{ color: 'var(--text-muted)' }}>Submit your first complaint to get started.</p>
+              <Link to="/complaints/new" className="mt-4">
+                <Button size="sm"><PlusCircle size={13} /> New Complaint</Button>
+              </Link>
+            </div>
+          ) : (
+            <table className="mono-table">
+              <thead>
                 <tr>
-                  <td colSpan="5" className="px-6 py-8 text-center text-slate-500">Loading complaints...</td>
+                  <th>Title</th>
+                  <th>Category</th>
+                  <th>Status</th>
+                  <th>Date</th>
+                  <th></th>
                 </tr>
-              ) : complaints.length === 0 ? (
-                <tr>
-                  <td colSpan="5" className="px-6 py-8 text-center text-slate-500">No complaints found.</td>
-                </tr>
-              ) : (
-                complaints.map((c) => (
-                  <tr key={c.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
-                    <td className="px-6 py-4 font-medium text-slate-900 dark:text-white">{c.title}</td>
-                    <td className="px-6 py-4">{c.category}</td>
-                    <td className="px-6 py-4"><Badge status={c.status} /></td>
-                    <td className="px-6 py-4">{format(new Date(c.created_at), 'MMM d, yyyy')}</td>
-                    <td className="px-6 py-4">
-                      <Link to={`/complaints/${c.id}`} className="text-blue-600 hover:text-blue-800 hover:underline dark:text-blue-400 dark:hover:text-blue-300 font-medium">
-                        View Details
+              </thead>
+              <tbody>
+                {complaints.map((c) => (
+                  <tr key={c._id}>
+                    <td className="font-medium max-w-[200px] truncate" style={{ color: 'var(--text)' }}>{c.title}</td>
+                    <td>
+                      <span className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>
+                        {c.category}
+                      </span>
+                    </td>
+                    <td><StatusBadge status={c.status} /></td>
+                    <td className="text-[12px] whitespace-nowrap">{format(new Date(c.createdAt), 'MMM d, yyyy')}</td>
+                    <td>
+                      <Link to={`/complaints/${c._id}`}>
+                        <Button variant="ghost" size="sm"><ArrowRight size={14} /></Button>
                       </Link>
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
       </Card>
     </div>

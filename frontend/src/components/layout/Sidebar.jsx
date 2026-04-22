@@ -1,39 +1,31 @@
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { 
-  X, 
-  Home, 
-  FileText, 
-  PlusCircle, 
-  Users, 
-  Settings, 
-  LogOut,
-  Activity
-} from 'lucide-react';
+import { X, Home, PlusCircle, Users, Settings, LogOut, Bell, Briefcase } from 'lucide-react';
 
 export default function Sidebar({ isOpen, setIsOpen }) {
   const { user, logout } = useAuth();
-  
+
   const getNavLinks = () => {
-    switch(user?.role) {
+    switch (user?.role) {
       case 'ADMIN':
         return [
-          { name: 'Dashboard', path: '/admin', icon: Home },
-          { name: 'All Complaints', path: '/admin/complaints', icon: FileText },
-          { name: 'Manage Users', path: '/admin/users', icon: Users },
-          { name: 'System Logs', path: '/admin/logs', icon: Activity },
+          { name: 'Overview', path: '/admin', icon: Home, end: true },
+          { name: 'Staff', path: '/admin/staff', icon: Users },
+          { name: 'Notifications', path: '/admin/notifications', icon: Bell },
+          { name: 'Settings', path: '/admin/settings', icon: Settings },
         ];
       case 'STAFF':
         return [
-          { name: 'Dashboard', path: '/staff', icon: Home },
-          { name: 'Assigned Tasks', path: '/staff/complaints', icon: FileText },
+          { name: 'My Tasks', path: '/staff', icon: Briefcase, end: true },
+          { name: 'Notifications', path: '/staff/notifications', icon: Bell },
+          { name: 'Settings', path: '/staff/settings', icon: Settings },
         ];
-      case 'USER':
       default:
         return [
-          { name: 'Dashboard', path: '/dashboard', icon: Home },
-          { name: 'My Complaints', path: '/complaints', icon: FileText },
+          { name: 'Dashboard', path: '/dashboard', icon: Home, end: true },
           { name: 'New Complaint', path: '/complaints/new', icon: PlusCircle },
+          { name: 'Notifications', path: '/notifications', icon: Bell },
+          { name: 'Settings', path: '/settings', icon: Settings },
         ];
     }
   };
@@ -42,56 +34,71 @@ export default function Sidebar({ isOpen, setIsOpen }) {
 
   return (
     <>
-      {/* Mobile overlay */}
       {isOpen && (
-        <div 
-          className="fixed inset-0 z-20 bg-slate-900/50 backdrop-blur-sm lg:hidden"
+        <div
+          className="fixed inset-0 z-20 bg-black/30 lg:hidden"
           onClick={() => setIsOpen(false)}
         />
       )}
 
-      {/* Sidebar panel */}
-      <div className={`fixed inset-y-0 left-0 z-30 w-64 transform border-r border-slate-200 bg-white transition-transform duration-300 ease-in-out dark:border-slate-800 dark:bg-slate-900 lg:static lg:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-        <div className="flex h-16 items-center justify-between px-6 border-b border-slate-200 dark:border-slate-800">
-          <span className="text-lg font-bold tracking-tight text-blue-600 dark:text-blue-400">
+      <div
+        className={`
+          sidebar fixed inset-y-0 left-0 z-30 w-56 flex flex-col
+          transform transition-transform duration-200 ease-out
+          lg:static lg:translate-x-0
+          ${isOpen ? 'translate-x-0' : '-translate-x-full'}
+        `}
+      >
+        {/* Brand */}
+        <div
+          className="flex h-14 items-center justify-between px-4"
+          style={{ borderBottom: '1px solid var(--border)' }}
+        >
+          <span className="text-[14px] font-bold tracking-tight" style={{ color: 'var(--text)' }}>
             Campus CMS
           </span>
-          <button onClick={() => setIsOpen(false)} className="lg:hidden text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200">
-            <X size={20} />
+          <button
+            onClick={() => setIsOpen(false)}
+            className="lg:hidden p-1 rounded-md"
+            style={{ color: 'var(--text-muted)' }}
+          >
+            <X size={16} />
           </button>
         </div>
-
-        <nav className="mt-6 flex flex-col gap-1 px-3">
+        {/* Nav Links */}
+        <nav className="flex-1 px-3 pt-3 space-y-0.5 overflow-y-auto">
+          <p
+            className="mb-2 px-2 text-[10px] font-semibold uppercase tracking-widest"
+            style={{ color: 'var(--text-muted)' }}
+          >
+            Menu
+          </p>
           {links.map((link) => {
             const Icon = link.icon;
             return (
               <NavLink
-                key={link.path}
+                key={link.name}
                 to={link.path}
-                end={link.path === '/admin' || link.path === '/staff' || link.path === '/dashboard'}
+                end={link.end}
                 onClick={() => setIsOpen(false)}
-                className={({ isActive }) => 
-                  `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
-                    isActive 
-                      ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400' 
-                      : 'text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800/50'
-                  }`
-                }
+                className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
               >
-                <Icon size={18} />
+                <Icon size={15} className="shrink-0" />
                 {link.name}
               </NavLink>
             );
           })}
         </nav>
 
-        <div className="absolute bottom-0 w-full border-t border-slate-200 p-4 dark:border-slate-800">
-          <button 
+        {/* Sign out */}
+        <div className="p-3" style={{ borderTop: '1px solid var(--border)' }}>
+          <button
             onClick={logout}
-            className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
+            className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-[13px] font-medium transition-opacity hover:opacity-70"
+            style={{ color: 'var(--status-danger)' }}
           >
-            <LogOut size={18} />
-            Sign Out
+            <LogOut size={15} />
+            Sign out
           </button>
         </div>
       </div>

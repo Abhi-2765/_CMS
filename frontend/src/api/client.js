@@ -18,7 +18,7 @@ const fetchClient = async (endpoint, options = {}) => {
             ...(!isFormData && { 'Content-Type': 'application/json' }),
             ...options.headers,
         },
-        credentials: 'true', // Important for cookies (JWT)
+        credentials: 'include', // Important for cookies (JWT)
     };
 
     if (!isFormData && config.body && typeof config.body === 'object') {
@@ -27,7 +27,7 @@ const fetchClient = async (endpoint, options = {}) => {
 
     try {
         const response = await fetch(`${API_URL}${endpoint}`, config);
-        
+
         let data;
         const contentType = response.headers.get('content-type');
         if (contentType && contentType.includes('application/json')) {
@@ -35,7 +35,11 @@ const fetchClient = async (endpoint, options = {}) => {
         }
 
         if (!response.ok) {
-            throw new ApiError(response.status, data?.error || 'Something went wrong', data?.details);
+            throw new ApiError(
+                response.status,
+                data?.message || data?.error || 'Something went wrong',
+                data?.details
+            );
         }
 
         return data;
